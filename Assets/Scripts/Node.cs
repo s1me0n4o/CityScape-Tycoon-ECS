@@ -1,0 +1,46 @@
+using Unity.Entities;
+
+namespace Pathfinding
+{
+
+    public struct Node : IComponentData
+    {
+        public int WorldIndex { get; }
+        public int FCost { get; private set; }
+        public int GCost { get; private set; }
+        public int HCost { get; private set; }
+        public int X { get; }
+        public int Y { get; }
+        public bool IsWalkable { get; private set; }
+        public int PreviousNodeIndex { get; private set; }
+
+        public Node(int x, int y, int worldPositionIndex, bool isWalkable, int prevIndex, int gCost, int hCost, int fCost)
+        {
+            X = x;
+            Y = y;
+            WorldIndex = worldPositionIndex;
+            IsWalkable = isWalkable;
+            PreviousNodeIndex = prevIndex;
+
+            GCost = gCost;
+            HCost = hCost;
+            FCost = fCost;
+        }
+
+        public void SetCosts(int gCost, int hCost)
+        {
+            GCost = gCost;
+            HCost = hCost;
+            CalculateFCost();
+        }
+
+        public void SetGCost(int gCost) => GCost = gCost;
+
+        public void CalculateFCost() => FCost = GCost + HCost;
+
+        public void SetPreviousNodeIndex(int i) => PreviousNodeIndex = i;
+
+        public void SetWalkable(bool isWalkable) => IsWalkable = isWalkable;
+
+    }
+}
