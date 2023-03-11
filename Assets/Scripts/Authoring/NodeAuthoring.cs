@@ -18,8 +18,10 @@ public class NodeAuthoring : MonoBehaviour, IConvertGameObjectToEntity, IDeclare
     {
         World world = World.DefaultGameObjectInjectionWorld;
         var spawnerSystem = world.GetOrCreateSystem<GridGeneratorSystem>();
+        var randomSystem = world.GetOrCreateSystem<BuildingRandomSystem>();
         spawnerSystem.GoPrefab = NodePrefab;
         spawnerSystem.GridSize = GridSize;
+        randomSystem.GridSize = GridSize;
 
         world.EntityManager.CompleteAllJobs();
         spawnerSystem.Update();
