@@ -1,13 +1,12 @@
 using Pathfinding;
 using System.Collections.Generic;
 using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 
 public class NodeAuthoring : MonoBehaviour, IConvertGameObjectToEntity, IDeclareReferencedPrefabs
 {
+    public GridConfig GridConfig;
     [SerializeField] private GameObject NodePrefab;
-    [SerializeField] private int2 GridSize;
 
     public void DeclareReferencedPrefabs(List<GameObject> referencedPrefabs)
     {
@@ -20,8 +19,8 @@ public class NodeAuthoring : MonoBehaviour, IConvertGameObjectToEntity, IDeclare
         var spawnerSystem = world.GetOrCreateSystem<GridGeneratorSystem>();
         var randomSystem = world.GetOrCreateSystem<BuildingRandomSystem>();
         spawnerSystem.GoPrefab = NodePrefab;
-        spawnerSystem.GridSize = GridSize;
-        randomSystem.GridSize = GridSize;
+        spawnerSystem.GridSize = GridConfig.GridSize;
+        randomSystem.GridSize = GridConfig.GridSize;
 
         world.EntityManager.CompleteAllJobs();
         spawnerSystem.Update();
