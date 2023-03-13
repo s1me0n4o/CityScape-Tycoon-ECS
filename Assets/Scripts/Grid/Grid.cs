@@ -22,7 +22,7 @@ namespace GridSystem
         public Grid(int width, int height, float cellSize, Vector3 originPosition, Transform parent,
             Func<Grid<T>, int, int, T> createGridObj) // passing the grid object, x and y
         {
-            var showDebug = true;
+            //var showDebug = true;
 
             _width = width;
             _height = height;
@@ -36,7 +36,6 @@ namespace GridSystem
                 for (int y = 0; y < _gridArray.GetLength(1); y++)
                 {
                     _gridArray[x, y] = createGridObj(this, x, y);
-                    Debug.Log(createGridObj(this, x, y));
                 }
             }
 
@@ -67,6 +66,8 @@ namespace GridSystem
             //    };
             //}
         }
+
+
 
         public float GetCellSize()
         {

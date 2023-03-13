@@ -1,5 +1,4 @@
 using Pathfinding;
-using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -9,28 +8,23 @@ public partial class BuildingRandomSystem : SystemBase
 {
     // TODO: try to refactor this with Job in order to use Burst
     public int2 GridSize;
-    private GridTag _grid;
 
     protected override void OnStartRunning()
     {
-        var _query = GetEntityQuery(typeof(GridTag));
-        var gridEntity = _query.GetSingletonEntity();
-        _grid = EntityManager.GetComponentData<GridTag>(gridEntity);
-        var hash = new HashSet<int>[5];
         var seed = (uint)UnityEngine.Random.Range(int.MinValue, int.MaxValue);
         Entities.ForEach((Entity entity, int entityInQueryIndex, ref RandomComponent randomData) =>
         {
             randomData.Value = Random.CreateFromIndex((uint)entityInQueryIndex + seed);
-            var random = randomData.Value.NextInt(0, _grid.GridArray.Length);
+            var random = randomData.Value.NextInt(0, GridMono.Instance.GridArray.Length);
             while (true)
             {
-                if (!_grid.GridArray[random].IsTaken)
+                if (!GridMono.Instance.GridArray[random].IsTaken)
                     break;
                 UnityEngine.Debug.Log("Taken");
                 randomData.Value = Random.CreateFromIndex((uint)entityInQueryIndex + seed);
-                random = randomData.Value.NextInt(0, _grid.GridArray.Length);
+                random = randomData.Value.NextInt(0, GridMono.Instance.GridArray.Length);
             }
-            _grid.GridArray[random].TakeNode(); // not working have to get the entity for that node
+            GridMono.Instance.GridArray[random].TakeNode(); // not working have to get the entity for that node
             // EntityManager.SetComponentData(_grid.GridArray[random], new GridComponent { IsTaken = true });
             randomData.RandomIndex = random;
         }).WithoutBurst().Run();
@@ -51,8 +45,8 @@ public partial class BuildingRandomSystem : SystemBase
 
     private void MoveBuilding(ref Translation translation, ref RandomComponent randomData)
     {
-        translation.Value.x = _grid.GridArray[randomData.RandomIndex].X;
-        translation.Value.y = _grid.GridArray[randomData.RandomIndex].Y;
+        translation.Value.x = GridMono.Instance.GridArray[randomData.RandomIndex].X;
+        translation.Value.y = GridMono.Instance.GridArray[randomData.RandomIndex].Y;
     }
 
 }

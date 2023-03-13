@@ -1,8 +1,40 @@
+using Cinemachine;
 using UnityEngine;
 
 public class CameraMovement : MonoBehaviour
 {
+    private CinemachineVirtualCamera _cam;
+
+    private float _fovMin = 36f;
+    private float _fovMax = 140f;
+    private float _targetFov;
+
+    private void Start()
+    {
+        _targetFov = _fovMin;
+        _cam = GetComponent<CinemachineVirtualCamera>();
+    }
+
     private void Update()
+    {
+        MovementAndRotation();
+        Zoom();
+    }
+
+    private void Zoom()
+    {
+        if (Input.mouseScrollDelta.y < 0)
+            _targetFov += 5;
+        if (Input.mouseScrollDelta.y > 0)
+            _targetFov -= 5;
+
+        _targetFov = Mathf.Clamp(_targetFov, _fovMin, _fovMax);
+
+        var scrollSpeed = 50f;
+        _cam.m_Lens.FieldOfView = Mathf.Lerp(_cam.m_Lens.FieldOfView, _targetFov, Time.deltaTime * scrollSpeed); ;
+    }
+
+    private void MovementAndRotation()
     {
         var inputDir = Vector3.zero;
         if (Input.GetKey(KeyCode.W))

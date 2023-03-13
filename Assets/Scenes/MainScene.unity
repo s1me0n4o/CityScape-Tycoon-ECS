@@ -652,7 +652,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 888640122352258418c9f3e22a1f3e17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GridGO: {fileID: 0}
+  GridConfig: {fileID: 11400000, guid: d93cf7bd32b071b4bbc51c9f6ed11b57, type: 2}
 --- !u!4 &776057217
 Transform:
   m_ObjectHideFlags: 0
@@ -748,9 +748,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63124c376a9f55f4f8e07e3c34f457f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GridSize:
-    x: 5
-    y: 5
+  GridConfig: {fileID: 11400000, guid: d93cf7bd32b071b4bbc51c9f6ed11b57, type: 2}
   NodePrefab: {fileID: 5500940253667989636, guid: 6f593763a2626b4408e1ca8589839892,
     type: 3}
 --- !u!4 &1284825659
