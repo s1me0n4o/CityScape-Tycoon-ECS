@@ -20,7 +20,6 @@ public partial class BuildingRandomSystem : SystemBase
             {
                 if (!GridMono.Instance.GridArray[random].IsTaken)
                     break;
-                UnityEngine.Debug.Log("Taken");
                 randomData.Value = Random.CreateFromIndex((uint)entityInQueryIndex + seed);
                 random = randomData.Value.NextInt(0, GridMono.Instance.GridArray.Length);
             }

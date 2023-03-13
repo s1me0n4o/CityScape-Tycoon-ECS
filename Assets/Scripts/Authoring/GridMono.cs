@@ -12,7 +12,7 @@ public class GridMono : MonoSingleton<GridMono>
     private void Start()
     {
         var grid = new Grid<Node>(GridConfig.GridSize.x, GridConfig.GridSize.y, 1f, Vector3.zero, null, (grid, x, y)
-            => new Node(x, y, CalculateWorldIndex(x, y, GridConfig.GridSize.x), true, -1, 0, 0, 0, NodeType.None));
+            => new Node(x, y, CalculateWorldIndex(x, y, GridConfig.GridSize.x), true, -1, 0, 0, 0, UnitType.None));
 
         var gridArr = grid.GetGridArray();
         _gridArray = new Node[GridConfig.GridSize.x * GridConfig.GridSize.y];

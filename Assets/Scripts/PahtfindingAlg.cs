@@ -159,7 +159,7 @@ public class PahtfindingAlg : MonoBehaviour
                     var worldIndex = CalculateWorldNodeIndex(i, j, gridSize.x);
                     var isWalkable = true;
                     var prevIndex = -1;
-                    var node = new Node(i, j, worldIndex, isWalkable, prevIndex, 0, 0, 0, NodeType.None);
+                    var node = new Node(i, j, worldIndex, isWalkable, prevIndex, 0, 0, 0, UnitType.None);
                     node.SetCosts(int.MaxValue, CalculateDistanceCost(new int2(i, j), EndPos)); // h will be the distance between the current pos and end pos
 
                     nodes[node.WorldIndex] = node;

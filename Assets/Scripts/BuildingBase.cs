@@ -1,11 +1,27 @@
-public enum NodeType
+using UnityEngine;
+
+public enum UnitType
 {
     None,
     Building,
     Road,
     Vehicle
 }
-public abstract class BuildingBase
+
+public enum BuildingType
 {
-    public NodeType Type;
+    None,
+    Producer,
+    Consumer
+}
+
+public abstract class Unit : MonoBehaviour
+{
+    public UnitType Type;
+}
+
+public abstract class BuildingBase : Unit
+{
+    public Color Color;
+    public BuildingType BuildingType;
 }

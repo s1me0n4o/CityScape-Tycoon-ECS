@@ -86,12 +86,12 @@ namespace Pathfinding
                     var worldIndex = CalculateWorldNodeIndex(i, j, x);
                     var isWalkable = true;
                     var prevIndex = -1;
-                    var node = new Node(i, j, worldIndex, isWalkable, prevIndex, 0, 0, 0, NodeType.None);
+                    var node = new Node(i, j, worldIndex, isWalkable, prevIndex, 0, 0, 0, UnitType.None);
 
                     GridArray[worldIndex] = node;
 
                     var newEntity = ecb.Instantiate(GoEntity);
-                    ecb.AddComponent(newEntity, node);
+                    ecb.AddComponent(newEntity, node); // TODO: probably can remove that component now
                     ecb.AddComponent<Translation>(newEntity);
                     ecb.SetComponent(newEntity, new Translation { Value = new float3(i, j, 0) });
                 }

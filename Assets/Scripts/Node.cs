@@ -5,7 +5,7 @@ namespace Pathfinding
 
     public struct Node : IComponentData
     {
-        public NodeType Type;
+        public UnitType Type;
         public int WorldIndex; // { get; } debug purposees;
         public bool IsTaken; //{ get; private set; }
         public int FCost { get; private set; }
@@ -16,7 +16,7 @@ namespace Pathfinding
         public bool IsWalkable { get; private set; }
         public int PreviousNodeIndex { get; private set; }
 
-        public Node(int x, int y, int worldPositionIndex, bool isWalkable, int prevIndex, int gCost, int hCost, int fCost, NodeType type, bool isTaken = false)
+        public Node(int x, int y, int worldPositionIndex, bool isWalkable, int prevIndex, int gCost, int hCost, int fCost, UnitType type, bool isTaken = false)
         {
             X = x;
             Y = y;
@@ -46,6 +46,6 @@ namespace Pathfinding
 
         public void SetWalkable(bool isWalkable) => IsWalkable = isWalkable;
 
-        public void TakeNode() => IsTaken = true;
+        public void TakeNode() { IsTaken = true; }
     }
 }
