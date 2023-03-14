@@ -14,65 +14,76 @@ public class PathFindingSystem : ComponentSystem
 
     protected override void OnUpdate()
     {
-        Enabled = false;
+        //Enabled = false;
 
-        //var query = GetEntityQuery(typeof(GridTag));
-        //var entity = query.GetSingletonEntity();
-        //var grid = EntityManager.GetComponentData<GridTag>(entity);
+        var grid = GridMono.Instance.Grid;
+        var gridSize = new int2(grid.GetGridWidth(), grid.GetGridHeight());
+        if (Input.GetMouseButtonDown(0))
+        {
+            Entities.ForEach((Entity e, DynamicBuffer<PathPositionBuffer> buffer, ref PathfindingParams pathParams) =>
+            {
+                Debug.Log("FindPath");
+                var job = new FindPathJob
+                {
+                    StartPos = pathParams.StartPosition,
+                    EndPos = pathParams.EndPosition,
+                    Nodes = GenerateGrid(gridSize),
+                    GridSize = gridSize,
+                    PathBuffer = buffer,
+                };
 
-        //Entities.ForEach((Entity e, /*DynamicBuffer<PathPositionBuffer> buffer,*/ ref PathfindingParams pathParams) =>
-        //{
-        //    Debug.Log("FindPath");
-        //    var job = new FindPathJob
-        //    {
-        //        StartPos = pathParams.StartPosition,
-        //        EndPos = pathParams.EndPosition,
-        //        Nodes = grid.GridArray,
-        //        //PathBuffer = buffer,
-        //        x = 20,
-        //        y = 20
-        //    };
-        //    job.Run();
+                job.Run();
 
-        //});
+            });
+        }
     }
 
+    private NativeArray<Node> GenerateGrid(int2 gridSize)
+    {
+        var grid = GridMono.Instance.Grid;
+        var nodes = new NativeArray<Node>(gridSize.x * gridSize.y, Allocator.TempJob);
 
+        for (int i = 0; i < gridSize.x; i++)
+        {
+            for (int j = 0; j < gridSize.y; j++)
+            {
+                var node = new Node();
+                node.X = i;
+                node.Y = j;
+                node.WorldIndex = CalculateWorldNodeIndex(i, j, gridSize.x);
+                node.GCost = int.MaxValue;
+
+                node.IsWalkable = grid.GetGridObject(i, j).IsWalkable;
+                node.PreviousNodeIndex = -1;
+
+                nodes[node.WorldIndex] = node;
+            }
+        }
+        return nodes;
+    }
     private static int CalculateWorldNodeIndex(int x, int y, int gridWidth) => x + y * gridWidth;
 
 
     [BurstCompatible]
     private struct FindPathJob : IJob
     {
-        int2 GridSize;
+        [DeallocateOnJobCompletion] public NativeArray<Node> Nodes;
+        public int2 GridSize;
+
         public int2 StartPos;
         public int2 EndPos;
-        public int x;
-        public int y;
-        //public DynamicBuffer<PathPositionBuffer> PathBuffer;
-        public NativeArray<Node> Nodes;
+
+        public DynamicBuffer<PathPositionBuffer> PathBuffer;
+
         public void Execute()
         {
             for (int i = 0; i < Nodes.Length; i++)
             {
                 var node = Nodes[i];
-                node.HCost = CalculateDistanceCost(new int2(node.X, node.Y), EndPos);
                 node.PreviousNodeIndex = -1;
+                node.HCost = CalculateDistanceCost(new int2(node.X, node.Y), EndPos);
+                node.CalculateFCost();
                 Nodes[i] = node;
-            }
-
-            {
-                var walkableNode = Nodes[CalculateWorldNodeIndex(1, 0, GridSize.x)];
-                walkableNode.SetWalkable(true);
-                Nodes[CalculateWorldNodeIndex(1, 0, GridSize.x)] = walkableNode;
-
-                walkableNode = Nodes[CalculateWorldNodeIndex(1, 1, GridSize.x)];
-                walkableNode.SetWalkable(true);
-                Nodes[CalculateWorldNodeIndex(1, 1, GridSize.x)] = walkableNode;
-
-                walkableNode = Nodes[CalculateWorldNodeIndex(1, 2, GridSize.x)];
-                walkableNode.SetWalkable(true);
-                Nodes[CalculateWorldNodeIndex(1, 2, GridSize.x)] = walkableNode;
             }
 
             var neighbourOffsetArray = new NativeArray<int2>(new int2[8], Allocator.Temp);
@@ -95,6 +106,8 @@ public class PathFindingSystem : ComponentSystem
 
             var openList = new NativeList<int>(Allocator.Temp);
             var closedList = new NativeList<int>(Allocator.Temp);
+
+            openList.Add(startNode.WorldIndex);
 
             while (openList.Length > 0)
             {
@@ -161,7 +174,7 @@ public class PathFindingSystem : ComponentSystem
                 }
             }
 
-            //PathBuffer.Clear();
+            PathBuffer.Clear();
             var endNode = Nodes[endNodeIndex];
 
             if (endNode.PreviousNodeIndex == -1)
@@ -172,13 +185,16 @@ public class PathFindingSystem : ComponentSystem
             else
             {
                 // found it
-                CalculatePath(Nodes, endNode);
-                //CalculatePath(nodes, endNode, PathBuffer);
+                //CalculatePath(Nodes, endNode);
+                CalculatePath(Nodes, endNode, PathBuffer);
+                foreach (var item in PathBuffer)
+                {
+                    Debug.Log(item.Position);
+                }
             }
 
             // dispose native arrays
             neighbourOffsetArray.Dispose();
-            Nodes.Dispose();
             openList.Dispose();
             closedList.Dispose();
         }
