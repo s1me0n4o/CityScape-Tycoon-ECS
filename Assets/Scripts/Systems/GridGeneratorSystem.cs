@@ -12,6 +12,7 @@ namespace Pathfinding
         public GameObject GoPrefab;
         public int2 GridSize;
         private BlobAssetStore _blobAssetStore;
+        private EntityQuery _query;
 
         protected override void OnCreate()
         {
