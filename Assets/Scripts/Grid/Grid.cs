@@ -67,7 +67,10 @@ namespace GridSystem
             //}
         }
 
-
+        public int GetWolrdIndex(int x, int y)
+        {
+            return x + y * _width;
+        }
 
         public float GetCellSize()
         {
@@ -138,11 +141,6 @@ namespace GridSystem
             int x, y;
             GetXandY(worldPosition, out x, out y);
             return GetGridObject(x, y);
-        }
-
-        public Vector3 GetWorldPosition(int x, int y)
-        {
-            return new Vector3(x, y) * _cellSize + _originPosition;
         }
 
         //public TextMeshPro CreateWorldText(Transform parent, string text, Vector3 localPosition, int fontSize, Color color,

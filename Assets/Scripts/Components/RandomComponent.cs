@@ -4,6 +4,8 @@ using Unity.Mathematics;
 [GenerateAuthoringComponent]
 public struct RandomComponent : IComponentData
 {
-    public Random Value;
-    public int RandomIndex;
+    public Random ValueX;
+    public Random ValueY;
+    public int RandomValueX;
+    public int RandomValueY;
 }

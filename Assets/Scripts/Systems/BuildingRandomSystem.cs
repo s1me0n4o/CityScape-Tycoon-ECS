@@ -14,28 +14,37 @@ public partial class BuildingRandomSystem : SystemBase
             var newEntity = EntityManager.Instantiate(buildingData.EntityProducerPrefab);
             EntityManager.AddComponent<BuildingParamsData>(newEntity);
             EntityManager.AddComponent<ProducerTag>(newEntity);
+            EntityManager.AddComponent<PathPositionAuthoring>(newEntity);
         }
         for (int i = 0; i < buildingData.NumberOfPrefabsConsumer; i++)
         {
             var newEntity = EntityManager.Instantiate(buildingData.EntityConsumerPrefab);
             EntityManager.AddComponent<BuildingParamsData>(newEntity);
             EntityManager.AddComponent<ConsumerTag>(newEntity);
+            EntityManager.AddComponent<PathPositionAuthoring>(newEntity);
         }
 
-        var seed = (uint)UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+        var seedX = (uint)UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+        var seedY = (uint)UnityEngine.Random.Range(int.MinValue, int.MaxValue);
         Entities.ForEach((Entity entity, int entityInQueryIndex, ref RandomComponent randomData) =>
         {
-            randomData.Value = Random.CreateFromIndex((uint)entityInQueryIndex + seed);
-            var random = randomData.Value.NextInt(0, GridMono.Instance.GridArray.Length);
+            randomData.ValueX = Random.CreateFromIndex((uint)entityInQueryIndex + seedX);
+            randomData.ValueY = Random.CreateFromIndex((uint)entityInQueryIndex + seedY);
+            var randomX = randomData.ValueX.NextInt(0, GridMono.Instance.Grid.GetGridWidth());
+            var randomY = randomData.ValueY.NextInt(0, GridMono.Instance.Grid.GetGridHeight());
             while (true)
             {
-                if (!GridMono.Instance.GridArray[random].IsTaken)
+                var grid = GridMono.Instance.Grid;
+                if (!GridMono.Instance.Grid.GetGridObject(randomX, randomY).IsTaken)
                     break;
-                randomData.Value = Random.CreateFromIndex((uint)entityInQueryIndex + seed);
-                random = randomData.Value.NextInt(0, GridMono.Instance.GridArray.Length);
+                randomData.ValueX = Random.CreateFromIndex((uint)entityInQueryIndex + seedX);
+                randomData.ValueY = Random.CreateFromIndex((uint)entityInQueryIndex + seedY);
+                randomX = randomData.ValueX.NextInt(0, GridMono.Instance.Grid.GetGridWidth());
+                randomY = randomData.ValueY.NextInt(0, GridMono.Instance.Grid.GetGridHeight());
             }
-            GridMono.Instance.GridArray[random].TakeNode(); // not working have to get the entity for that node
-            randomData.RandomIndex = random;
+            GridMono.Instance.Grid.GetGridObject(randomX, randomY).TakeNode();
+            randomData.RandomValueX = randomX;
+            randomData.RandomValueY = randomY;
         }).Run();
     }
 
@@ -55,8 +64,8 @@ public partial class BuildingRandomSystem : SystemBase
 
     private void MoveBuilding(ref Translation translation, ref RandomComponent randomData)
     {
-        translation.Value.x = GridMono.Instance.GridArray[randomData.RandomIndex].X;
-        translation.Value.y = GridMono.Instance.GridArray[randomData.RandomIndex].Y;
+        translation.Value.x = GridMono.Instance.Grid.GetGridObject(randomData.RandomValueX, randomData.RandomValueY).X;
+        translation.Value.y = GridMono.Instance.Grid.GetGridObject(randomData.RandomValueX, randomData.RandomValueY).Y;
     }
 
 }

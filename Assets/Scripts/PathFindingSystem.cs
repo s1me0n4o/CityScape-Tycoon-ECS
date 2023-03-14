@@ -6,38 +6,73 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class PahtfindingAlg : MonoBehaviour
+[UpdateAfter(typeof(BuildingRandomSystem))]
+public class PathFindingSystem : ComponentSystem
 {
     private const int StraightCost = 10;
     private const int DiagonalCost = 14;
+
+    protected override void OnUpdate()
+    {
+        Enabled = false;
+
+        //var query = GetEntityQuery(typeof(GridTag));
+        //var entity = query.GetSingletonEntity();
+        //var grid = EntityManager.GetComponentData<GridTag>(entity);
+
+        //Entities.ForEach((Entity e, /*DynamicBuffer<PathPositionBuffer> buffer,*/ ref PathfindingParams pathParams) =>
+        //{
+        //    Debug.Log("FindPath");
+        //    var job = new FindPathJob
+        //    {
+        //        StartPos = pathParams.StartPosition,
+        //        EndPos = pathParams.EndPosition,
+        //        Nodes = grid.GridArray,
+        //        //PathBuffer = buffer,
+        //        x = 20,
+        //        y = 20
+        //    };
+        //    job.Run();
+
+        //});
+    }
+
+
+    private static int CalculateWorldNodeIndex(int x, int y, int gridWidth) => x + y * gridWidth;
+
+
     [BurstCompatible]
     private struct FindPathJob : IJob
     {
+        int2 GridSize;
         public int2 StartPos;
         public int2 EndPos;
         public int x;
         public int y;
-        public DynamicBuffer<PathPositionBuffer> pathBuffer;
-        public DynamicBuffer<GridNodesPosition> Grud;
-
+        //public DynamicBuffer<PathPositionBuffer> PathBuffer;
+        public NativeArray<Node> Nodes;
         public void Execute()
         {
-            int2 gridSize;
-            NativeArray<Node> nodes;
-            GenerateGrid(out gridSize, out nodes);
+            for (int i = 0; i < Nodes.Length; i++)
+            {
+                var node = Nodes[i];
+                node.HCost = CalculateDistanceCost(new int2(node.X, node.Y), EndPos);
+                node.PreviousNodeIndex = -1;
+                Nodes[i] = node;
+            }
 
             {
-                var walkableNode = nodes[CalculateWorldNodeIndex(1, 0, gridSize.x)];
+                var walkableNode = Nodes[CalculateWorldNodeIndex(1, 0, GridSize.x)];
                 walkableNode.SetWalkable(true);
-                nodes[CalculateWorldNodeIndex(1, 0, gridSize.x)] = walkableNode;
+                Nodes[CalculateWorldNodeIndex(1, 0, GridSize.x)] = walkableNode;
 
-                walkableNode = nodes[CalculateWorldNodeIndex(1, 1, gridSize.x)];
+                walkableNode = Nodes[CalculateWorldNodeIndex(1, 1, GridSize.x)];
                 walkableNode.SetWalkable(true);
-                nodes[CalculateWorldNodeIndex(1, 1, gridSize.x)] = walkableNode;
+                Nodes[CalculateWorldNodeIndex(1, 1, GridSize.x)] = walkableNode;
 
-                walkableNode = nodes[CalculateWorldNodeIndex(1, 2, gridSize.x)];
+                walkableNode = Nodes[CalculateWorldNodeIndex(1, 2, GridSize.x)];
                 walkableNode.SetWalkable(true);
-                nodes[CalculateWorldNodeIndex(1, 2, gridSize.x)] = walkableNode;
+                Nodes[CalculateWorldNodeIndex(1, 2, GridSize.x)] = walkableNode;
             }
 
             var neighbourOffsetArray = new NativeArray<int2>(new int2[8], Allocator.Temp);
@@ -50,12 +85,12 @@ public class PahtfindingAlg : MonoBehaviour
             neighbourOffsetArray[6] = new int2(+1, -1); // buttom right
             neighbourOffsetArray[7] = new int2(+1, +1); // top right
 
-            var endNodeIndex = CalculateWorldNodeIndex(EndPos.x, EndPos.y, gridSize.x);
+            var endNodeIndex = CalculateWorldNodeIndex(EndPos.x, EndPos.y, GridSize.x);
 
-            var startNode = nodes[CalculateWorldNodeIndex(StartPos.x, StartPos.y, gridSize.x)];
+            var startNode = Nodes[CalculateWorldNodeIndex(StartPos.x, StartPos.y, GridSize.x)];
             startNode.SetGCost(0);
             startNode.CalculateFCost();
-            nodes[startNode.WorldIndex] = startNode; // using ref types -> update the array
+            Nodes[startNode.WorldIndex] = startNode; // using ref types -> update the array
 
 
             var openList = new NativeList<int>(Allocator.Temp);
@@ -63,8 +98,8 @@ public class PahtfindingAlg : MonoBehaviour
 
             while (openList.Length > 0)
             {
-                var currentNodeIndex = GetLowestFCostNodeIndex(openList, nodes);
-                var currentNode = nodes[currentNodeIndex];
+                var currentNodeIndex = GetLowestFCostNodeIndex(openList, Nodes);
+                var currentNode = Nodes[currentNodeIndex];
 
                 if (currentNodeIndex == endNodeIndex)
                 {
@@ -89,13 +124,13 @@ public class PahtfindingAlg : MonoBehaviour
                 {
                     var neighbour = neighbourOffsetArray[i];
                     var neighbourPos = new int2(currentNode.X + neighbour.x, currentNode.Y + neighbour.y);
-                    if (!IsValidPosition(neighbourPos, gridSize))
+                    if (!IsValidPosition(neighbourPos, GridSize))
                     {
                         // neighbour is outside of the grid
                         continue;
                     }
 
-                    var neighbourIndex = CalculateWorldNodeIndex(neighbourPos.x, neighbourPos.y, gridSize.x);
+                    var neighbourIndex = CalculateWorldNodeIndex(neighbourPos.x, neighbourPos.y, GridSize.x);
 
                     if (closedList.Contains(neighbourIndex))
                     {
@@ -103,7 +138,7 @@ public class PahtfindingAlg : MonoBehaviour
                         continue;
                     }
 
-                    var neigbourNode = nodes[neighbourIndex];
+                    var neigbourNode = Nodes[neighbourIndex];
                     if (!neigbourNode.IsWalkable)
                     {
                         continue;
@@ -116,7 +151,7 @@ public class PahtfindingAlg : MonoBehaviour
                         neigbourNode.SetPreviousNodeIndex(currentNodeIndex);
                         neigbourNode.SetGCost(tentitiveGCost);
                         neigbourNode.CalculateFCost();
-                        nodes[neighbourIndex] = neigbourNode;
+                        Nodes[neighbourIndex] = neigbourNode;
 
                         if (!openList.Contains(neigbourNode.WorldIndex))
                         {
@@ -126,8 +161,8 @@ public class PahtfindingAlg : MonoBehaviour
                 }
             }
 
-            pathBuffer.Clear();
-            var endNode = nodes[endNodeIndex];
+            //PathBuffer.Clear();
+            var endNode = Nodes[endNodeIndex];
 
             if (endNode.PreviousNodeIndex == -1)
             {
@@ -137,37 +172,18 @@ public class PahtfindingAlg : MonoBehaviour
             else
             {
                 // found it
-                CalculatePath(nodes, endNode, pathBuffer);
+                CalculatePath(Nodes, endNode);
+                //CalculatePath(nodes, endNode, PathBuffer);
             }
 
             // dispose native arrays
             neighbourOffsetArray.Dispose();
-            nodes.Dispose();
+            Nodes.Dispose();
             openList.Dispose();
             closedList.Dispose();
-
         }
 
-        private void GenerateGrid(out int2 gridSize, out NativeArray<Node> nodes)
-        {
-            gridSize = new int2(x, y);
-            nodes = new NativeArray<Node>(gridSize.x * gridSize.y, Allocator.Temp);
-            for (int i = 0; i < gridSize.x; i++)
-            {
-                for (int j = 0; j < gridSize.y; j++)
-                {
-                    var worldIndex = CalculateWorldNodeIndex(i, j, gridSize.x);
-                    var isWalkable = true;
-                    var prevIndex = -1;
-                    var node = new Node(i, j, worldIndex, isWalkable, prevIndex, 0, 0, 0, UnitType.None);
-                    node.SetCosts(int.MaxValue, CalculateDistanceCost(new int2(i, j), EndPos)); // h will be the distance between the current pos and end pos
 
-                    nodes[node.WorldIndex] = node;
-                }
-            }
-        }
-
-        private int CalculateWorldNodeIndex(int x, int y, int gridWidth) => x + y * gridWidth;
 
         private int CalculateDistanceCost(int2 a, int2 b)
         {
@@ -240,6 +256,8 @@ public class PahtfindingAlg : MonoBehaviour
                 }
             }
         }
+
+
     }
 
 }
