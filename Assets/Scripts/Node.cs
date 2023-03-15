@@ -64,6 +64,10 @@ namespace Pathfinding
 
         public void SetWalkable(bool isWalkable) => IsWalkable = isWalkable;
 
-        public void TakeNode() { IsTaken = true; }
+        public void TakeNode(UnitType unitType)
+        {
+            IsTaken = true;
+            Type = unitType;
+        }
     }
 }

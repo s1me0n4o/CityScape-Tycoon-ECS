@@ -1,6 +1,8 @@
 using Pathfinding;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -14,29 +16,43 @@ public class PathFindingSystem : ComponentSystem
 
     protected override void OnUpdate()
     {
-        //Enabled = false;
-
         var grid = GridMono.Instance.Grid;
         var gridSize = new int2(grid.GetGridWidth(), grid.GetGridHeight());
-        if (Input.GetMouseButtonDown(0))
+
+        var findPathJobList = new List<FindPathJob>();
+        var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
+
+        Entities.ForEach((Entity e, DynamicBuffer<PathPositionBuffer> buffer, ref PathfindingParams pathParams) =>
         {
-            Entities.ForEach((Entity e, DynamicBuffer<PathPositionBuffer> buffer, ref PathfindingParams pathParams) =>
+            Debug.Log("FindPath");
+            var findPathJob = new FindPathJob
             {
-                Debug.Log("FindPath");
-                var job = new FindPathJob
-                {
-                    StartPos = pathParams.StartPosition,
-                    EndPos = pathParams.EndPosition,
-                    Nodes = GenerateGrid(gridSize),
-                    GridSize = gridSize,
-                    PathBuffer = buffer,
-                    FollowPathDataFromEntity = GetComponentDataFromEntity<FollowPathData>(),
-                    CurrentEntity = e,
-                };
+                StartPos = pathParams.StartPosition,
+                EndPos = pathParams.EndPosition,
+                Nodes = GenerateGrid(gridSize),
+                GridSize = gridSize,
+                FollowPathDataFromEntity = GetComponentDataFromEntity<FollowPathData>(),
+                CurrentEntity = e,
+            };
 
-                job.Run();
+            findPathJobList.Add(findPathJob);
+            jobHandleList.Add(findPathJob.Schedule());
+            PostUpdateCommands.RemoveComponent<PathfindingParams>(e);
+        });
 
-            });
+        JobHandle.CompleteAll(jobHandleList);
+
+        foreach (var item in findPathJobList)
+        {
+            new SetBufferPathJob
+            {
+                entity = item.CurrentEntity,
+                GridSize = item.GridSize,
+                Nodes = item.Nodes,
+                PathfindingParamsFromEntity = GetComponentDataFromEntity<PathfindingParams>(),
+                FollowPathDataFromEntity = GetComponentDataFromEntity<FollowPathData>(),
+                PathPositionBufferFromEntity = GetBufferFromEntity<PathPositionBuffer>(),
+            }.Run();
         }
     }
 
@@ -66,6 +82,58 @@ public class PathFindingSystem : ComponentSystem
 
     private static int CalculateWorldNodeIndex(int x, int y, int gridWidth) => x + y * gridWidth;
 
+    [BurstCompatible]
+    private struct SetBufferPathJob : IJob
+    {
+        public int2 GridSize;
+        [DeallocateOnJobCompletion] public NativeArray<Node> Nodes;
+        public Entity entity;
+        public ComponentDataFromEntity<PathfindingParams> PathfindingParamsFromEntity;
+        public ComponentDataFromEntity<FollowPathData> FollowPathDataFromEntity;
+        public BufferFromEntity<PathPositionBuffer> PathPositionBufferFromEntity;
+
+        public void Execute()
+        {
+            var buffer = PathPositionBufferFromEntity[entity];
+            buffer.Clear();
+
+            var pathfindingParams = PathfindingParamsFromEntity[entity];
+            var endNodeIndex = CalculateWorldNodeIndex(pathfindingParams.EndPosition.x, pathfindingParams.EndPosition.y, GridSize.x);
+            var endNode = Nodes[endNodeIndex];
+            if (endNode.PreviousNodeIndex == -1)
+            {
+                // no path
+                Debug.Log("No path found!");
+                FollowPathDataFromEntity[entity] = new FollowPathData { PathIndex = -1 };
+            }
+            else
+            {
+                // found it
+                CalculatePath(Nodes, endNode, buffer);
+                FollowPathDataFromEntity[entity] = new FollowPathData { PathIndex = buffer.Length - 1 };
+            }
+        }
+
+        private void CalculatePath(NativeArray<Node> nodes, Node endNode, DynamicBuffer<PathPositionBuffer> pathBuffer)
+        {
+            if (endNode.PreviousNodeIndex == -1)
+            {
+                // no path
+            }
+            else
+            {
+                pathBuffer.Add(new PathPositionBuffer { Position = new int2(endNode.X, endNode.Y) });
+
+                var currentNode = endNode;
+                while (currentNode.PreviousNodeIndex != -1)
+                {
+                    var cameFromNode = nodes[currentNode.PreviousNodeIndex];
+                    pathBuffer.Add(new PathPositionBuffer { Position = new int2(cameFromNode.X, cameFromNode.Y) });
+                    currentNode = cameFromNode;
+                }
+            }
+        }
+    }
 
     [BurstCompatible]
     private struct FindPathJob : IJob
@@ -75,9 +143,8 @@ public class PathFindingSystem : ComponentSystem
         public int2 StartPos;
         public int2 EndPos;
 
-        [DeallocateOnJobCompletion] public NativeArray<Node> Nodes;
-        public DynamicBuffer<PathPositionBuffer> PathBuffer;
-        public ComponentDataFromEntity<FollowPathData> FollowPathDataFromEntity;
+        public NativeArray<Node> Nodes;
+        [NativeDisableContainerSafetyRestriction] public ComponentDataFromEntity<FollowPathData> FollowPathDataFromEntity;
         public Entity CurrentEntity;
 
         public void Execute()
@@ -179,27 +246,6 @@ public class PathFindingSystem : ComponentSystem
                 }
             }
 
-            PathBuffer.Clear();
-            var endNode = Nodes[endNodeIndex];
-
-            if (endNode.PreviousNodeIndex == -1)
-            {
-                // no path
-                Debug.Log("No path found!");
-                FollowPathDataFromEntity[CurrentEntity] = new FollowPathData { PathIndex = -1 };
-            }
-            else
-            {
-                // found it
-                CalculatePath(Nodes, endNode, PathBuffer);
-                FollowPathDataFromEntity[CurrentEntity] = new FollowPathData { PathIndex = PathBuffer.Length - 1 };
-
-                foreach (var item in PathBuffer)
-                {
-                    Debug.Log(item.Position);
-                }
-            }
-
             // dispose native arrays
             neighbourOffsetArray.Dispose();
             openList.Dispose();
@@ -259,28 +305,6 @@ public class PathFindingSystem : ComponentSystem
                 return path;
             }
         }
-
-        private void CalculatePath(NativeArray<Node> nodes, Node endNode, DynamicBuffer<PathPositionBuffer> pathBuffer)
-        {
-            if (endNode.PreviousNodeIndex == -1)
-            {
-                // no path
-            }
-            else
-            {
-                pathBuffer.Add(new PathPositionBuffer { Position = new int2(endNode.X, endNode.Y) });
-
-                var currentNode = endNode;
-                while (currentNode.PreviousNodeIndex != -1)
-                {
-                    var cameFromNode = nodes[currentNode.PreviousNodeIndex];
-                    pathBuffer.Add(new PathPositionBuffer { Position = new int2(cameFromNode.X, cameFromNode.Y) });
-                    currentNode = cameFromNode;
-                }
-            }
-        }
-
-
     }
 
 }

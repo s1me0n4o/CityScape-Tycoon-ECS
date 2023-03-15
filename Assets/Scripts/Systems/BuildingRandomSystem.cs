@@ -11,21 +11,11 @@ public partial class BuildingRandomSystem : SystemBase
         var buildingData = GetSingleton<BuildingParamsData>();
         for (int i = 0; i < buildingData.NumberOfPrefabsProducer; i++)
         {
-            var newEntity = EntityManager.Instantiate(buildingData.EntityProducerPrefab);
-            EntityManager.AddComponent<BuildingParamsData>(newEntity);
-            EntityManager.AddComponent<ProducerTag>(newEntity);
-
-            EntityManager.AddComponent<PathPositionAuthoring>(newEntity);
-            EntityManager.AddComponent<PathfindingParams>(newEntity);
-            EntityManager.AddComponent<PathPositionBuffer>(newEntity);
-            EntityManager.AddComponentData(newEntity, new FollowPathData { PathIndex = -1 });
+            CreateProducer(buildingData);
         }
         for (int i = 0; i < buildingData.NumberOfPrefabsConsumer; i++)
         {
-            var newEntity = EntityManager.Instantiate(buildingData.EntityConsumerPrefab);
-            EntityManager.AddComponent<BuildingParamsData>(newEntity);
-            EntityManager.AddComponent<ConsumerTag>(newEntity);
-            EntityManager.AddComponent<PathPositionAuthoring>(newEntity);
+            CreateConsumer(buildingData);
         }
 
         var seedX = (uint)UnityEngine.Random.Range(int.MinValue, int.MaxValue);
@@ -46,10 +36,37 @@ public partial class BuildingRandomSystem : SystemBase
                 randomX = randomData.ValueX.NextInt(0, GridMono.Instance.Grid.GetGridWidth());
                 randomY = randomData.ValueY.NextInt(0, GridMono.Instance.Grid.GetGridHeight());
             }
-            GridMono.Instance.Grid.GetGridObject(randomX, randomY).TakeNode();
+
             randomData.RandomValueX = randomX;
             randomData.RandomValueY = randomY;
+
+
+            // take the node
+            var node = GridMono.Instance.Grid.GetGridObject(randomX, randomY);
+            node.TakeNode(UnitType.Building);
+            //GridMono.Instance.AddBuilding(node);
+
         }).Run();
+    }
+
+    private void CreateConsumer(BuildingParamsData buildingData)
+    {
+        var newEntity = EntityManager.Instantiate(buildingData.EntityConsumerPrefab);
+        EntityManager.AddComponent<BuildingParamsData>(newEntity);
+        EntityManager.AddComponent<ConsumerTag>(newEntity);
+        EntityManager.AddComponent<PathPositionAuthoring>(newEntity);
+    }
+
+    private void CreateProducer(BuildingParamsData buildingData)
+    {
+        var newEntity = EntityManager.Instantiate(buildingData.EntityProducerPrefab);
+        EntityManager.AddComponent<BuildingParamsData>(newEntity);
+        EntityManager.AddComponent<ProducerTag>(newEntity);
+
+        EntityManager.AddComponent<PathPositionAuthoring>(newEntity);
+        //EntityManager.AddComponent<PathfindingParams>(newEntity);
+        EntityManager.AddComponent<PathPositionBuffer>(newEntity);
+        EntityManager.AddComponentData(newEntity, new FollowPathData { PathIndex = -1 });
     }
 
     protected override void OnUpdate()
