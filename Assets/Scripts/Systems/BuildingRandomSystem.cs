@@ -14,9 +14,11 @@ public partial class BuildingRandomSystem : SystemBase
             var newEntity = EntityManager.Instantiate(buildingData.EntityProducerPrefab);
             EntityManager.AddComponent<BuildingParamsData>(newEntity);
             EntityManager.AddComponent<ProducerTag>(newEntity);
+
             EntityManager.AddComponent<PathPositionAuthoring>(newEntity);
             EntityManager.AddComponent<PathfindingParams>(newEntity);
             EntityManager.AddComponent<PathPositionBuffer>(newEntity);
+            EntityManager.AddComponentData(newEntity, new FollowPathData { PathIndex = -1 });
         }
         for (int i = 0; i < buildingData.NumberOfPrefabsConsumer; i++)
         {

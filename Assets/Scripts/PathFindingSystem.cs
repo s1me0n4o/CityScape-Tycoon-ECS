@@ -30,6 +30,8 @@ public class PathFindingSystem : ComponentSystem
                     Nodes = GenerateGrid(gridSize),
                     GridSize = gridSize,
                     PathBuffer = buffer,
+                    FollowPathDataFromEntity = GetComponentDataFromEntity<FollowPathData>(),
+                    CurrentEntity = e,
                 };
 
                 job.Run();
@@ -61,19 +63,22 @@ public class PathFindingSystem : ComponentSystem
         }
         return nodes;
     }
+
     private static int CalculateWorldNodeIndex(int x, int y, int gridWidth) => x + y * gridWidth;
 
 
     [BurstCompatible]
     private struct FindPathJob : IJob
     {
-        [DeallocateOnJobCompletion] public NativeArray<Node> Nodes;
         public int2 GridSize;
 
         public int2 StartPos;
         public int2 EndPos;
 
+        [DeallocateOnJobCompletion] public NativeArray<Node> Nodes;
         public DynamicBuffer<PathPositionBuffer> PathBuffer;
+        public ComponentDataFromEntity<FollowPathData> FollowPathDataFromEntity;
+        public Entity CurrentEntity;
 
         public void Execute()
         {
@@ -181,12 +186,14 @@ public class PathFindingSystem : ComponentSystem
             {
                 // no path
                 Debug.Log("No path found!");
+                FollowPathDataFromEntity[CurrentEntity] = new FollowPathData { PathIndex = -1 };
             }
             else
             {
                 // found it
-                //CalculatePath(Nodes, endNode);
                 CalculatePath(Nodes, endNode, PathBuffer);
+                FollowPathDataFromEntity[CurrentEntity] = new FollowPathData { PathIndex = PathBuffer.Length - 1 };
+
                 foreach (var item in PathBuffer)
                 {
                     Debug.Log(item.Position);

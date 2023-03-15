@@ -14,7 +14,6 @@ public class UnitMoveSystem : ComponentSystem
                 .WithAll<ProducerTag>()
                 .ForEach((Entity e) =>
             {
-                UnityEngine.Debug.Log(e);
                 EntityManager.SetComponentData(e, new PathfindingParams
                 {
                     StartPosition = new int2(0, 0),
