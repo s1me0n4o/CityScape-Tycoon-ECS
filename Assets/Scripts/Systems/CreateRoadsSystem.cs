@@ -62,6 +62,8 @@ public class CreateRoadsSystem : ComponentSystem
     protected override void OnUpdate()
     {
         Entities
+         .WithAll<RoadTag>()
+         .WithNone<VehicleTag>()
         .ForEach((Entity e, DynamicBuffer<PathPositionBuffer> buffer, ref FollowPathData followPathData) =>
         {
             if (followPathData.PathIndex >= 0)
@@ -83,7 +85,9 @@ public class CreateRoadsSystem : ComponentSystem
                     GridMono.Instance.Grid.GetGridObject((int)targetPos.x, (int)targetPos.y).SetWalkable(true);
                     if (followPathData.PathIndex <= 0)
                     {
+                        PostUpdateCommands.RemoveComponent<PathPositionAuthoring>(e);
                         PostUpdateCommands.RemoveComponent<FollowPathData>(e);
+                        PostUpdateCommands.RemoveComponent<PathfindingParams>(e);
                     }
                 }
                 followPathData.PathIndex--;

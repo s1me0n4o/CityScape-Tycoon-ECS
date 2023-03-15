@@ -10,8 +10,6 @@ public class RoadParamsAuthoring : MonoBehaviour, IDeclareReferencedPrefabs, ICo
         var roadData = new RoadParamsData
         {
             RoadEntityPrefab = conversionSystem.GetPrimaryEntity(RoadPrefab),
-            //StartBuilding = entity,
-            //EndBuilding = entity,
         };
         dstManager.AddComponentData(entity, roadData);
     }

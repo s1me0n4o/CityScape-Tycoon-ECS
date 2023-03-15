@@ -17,12 +17,5 @@ public class GridMono : MonoSingleton<GridMono>
     {
         _grid = new Grid<NodeMono>(GridConfig.GridSize.x, GridConfig.GridSize.y, 1f, Vector3.zero, null, (grid, x, y)
             => new NodeMono());
-
-        var node = _grid.GetGridObject(1, 0);
-        node.SetWalkable(false);
-        node = _grid.GetGridObject(1, 1);
-        node.SetWalkable(false);
-        node = _grid.GetGridObject(1, 2);
-        node.SetWalkable(false);
     }
 }

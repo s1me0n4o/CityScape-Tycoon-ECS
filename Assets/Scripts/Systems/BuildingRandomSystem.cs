@@ -44,8 +44,6 @@ public partial class BuildingRandomSystem : SystemBase
             // take the node
             var node = GridMono.Instance.Grid.GetGridObject(randomX, randomY);
             node.TakeNode(UnitType.Building);
-            //GridMono.Instance.AddBuilding(node);
-
         }).Run();
     }
 

@@ -24,7 +24,6 @@ public class PathFindingSystem : ComponentSystem
 
         Entities.ForEach((Entity e, DynamicBuffer<PathPositionBuffer> buffer, ref PathfindingParams pathParams) =>
         {
-            Debug.Log("FindPath");
             var findPathJob = new FindPathJob
             {
                 StartPos = pathParams.StartPosition,
