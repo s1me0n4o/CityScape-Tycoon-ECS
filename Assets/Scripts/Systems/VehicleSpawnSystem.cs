@@ -6,10 +6,13 @@ using UnityEngine;
 [UpdateAfter(typeof(BuildingRandomSystem))]
 public partial class VehicleSpawnSystem : ComponentSystem
 {
+    private const float _zPosition = -0.1f;
+
     protected override void OnStartRunning()
     {
         var vehData = GetSingleton<VehicleData>();
 
+        // create vehicle
         Entities
             .WithAll<ConsumerTag>()
             .ForEach((Entity e, ref Translation eTranslation) =>
@@ -22,18 +25,18 @@ public partial class VehicleSpawnSystem : ComponentSystem
                 EntityManager.AddComponent<PathPositionAuthoring>(newEntity);
                 //EntityManager.AddComponent<PathfindingParams>(newEntity);
                 EntityManager.AddComponent<PathPositionBuffer>(newEntity);
-                EntityManager.AddComponentData(newEntity, new FollowPathData { PathIndex = -1 });
 
                 // position
-                var pos = new float3(eTranslation.Value.x, eTranslation.Value.y - .2f, -0.1f);
+                var pos = new float3(eTranslation.Value.x, eTranslation.Value.y - .1f, _zPosition);
                 EntityManager.SetComponentData(newEntity, new Translation { Value = pos });
+                EntityManager.AddComponentData(newEntity, new FollowPathData { PathIndex = -1 });
             });
     }
 
     protected override void OnUpdate()
     {
         // TODO: Job!
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0)) // TODO: remove
         {
             Entities
                 .WithAll<VehicleTag>()
@@ -73,6 +76,9 @@ public partial class VehicleSpawnSystem : ComponentSystem
                             StartPosition = new int2((int)eTranslation.Value.x, (int)eTranslation.Value.y),
                             EndPosition = new int2((int)closestTargetPos.x, (int)closestTargetPos.y)
                         });
+                        var pos = new float3(eTranslation.Value.x, eTranslation.Value.y - .1f, _zPosition);
+                        EntityManager.AddComponentData(e, new VehicleData { InitialPos = new int2((int)eTranslation.Value.x, (int)eTranslation.Value.y) });
+
                     }
                 });
 

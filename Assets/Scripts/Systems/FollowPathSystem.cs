@@ -13,7 +13,8 @@ public partial class FollowPathSystem : ComponentSystem
         Entities
             .WithAll<VehicleTag>()
             .WithNone<RoadTag>()
-            .ForEach((DynamicBuffer<PathPositionBuffer> buffer, ref Translation translation, ref FollowPathData followPathData) =>
+            .ForEach((Entity e, DynamicBuffer<PathPositionBuffer> buffer, ref Translation translation, ref FollowPathData followPathData
+            , ref VehicleData vData) =>
         {
             if (followPathData.PathIndex >= 0)
             {
@@ -27,6 +28,14 @@ public partial class FollowPathSystem : ComponentSystem
                 if (math.distance(translation.Value, targetPos) < _minDist)
                 {
                     followPathData.PathIndex--;
+                    if (followPathData.PathIndex <= 0)
+                    {
+                        EntityManager.AddComponentData(e, new PathfindingParams
+                        {
+                            StartPosition = new int2((int)translation.Value.x, (int)translation.Value.y),
+                            EndPosition = new int2((int)vData.InitialPos.x, (int)vData.InitialPos.y)
+                        });
+                    }
                 }
             }
         });
