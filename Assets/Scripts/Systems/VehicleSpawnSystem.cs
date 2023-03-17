@@ -17,19 +17,20 @@ public partial class VehicleSpawnSystem : ComponentSystem
             .WithAll<ConsumerTag>()
             .ForEach((Entity e, ref Translation eTranslation) =>
             {
-                var newEntity = EntityManager.Instantiate(vehData.VehicleEntityPrefab);
-                EntityManager.AddComponent<Translation>(newEntity);
-                EntityManager.AddComponent<VehicleTag>(newEntity);
+                var vehicleEntity = EntityManager.Instantiate(vehData.VehicleEntityPrefab);
+                EntityManager.AddComponent<Translation>(vehicleEntity);
+                EntityManager.AddComponent<VehicleTag>(vehicleEntity);
 
                 // pathfinding
-                EntityManager.AddComponent<PathPositionAuthoring>(newEntity);
+                EntityManager.AddComponent<PathPositionAuthoring>(vehicleEntity);
                 //EntityManager.AddComponent<PathfindingParams>(newEntity);
-                EntityManager.AddComponent<PathPositionBuffer>(newEntity);
+                EntityManager.AddComponent<PathPositionBuffer>(vehicleEntity);
 
                 // position
-                var pos = new float3(eTranslation.Value.x, eTranslation.Value.y - .1f, _zPosition);
-                EntityManager.SetComponentData(newEntity, new Translation { Value = pos });
-                EntityManager.AddComponentData(newEntity, new FollowPathData { PathIndex = -1 });
+                var pos = new float3(eTranslation.Value.x, eTranslation.Value.y, _zPosition);
+                EntityManager.SetComponentData(vehicleEntity, new Translation { Value = pos });
+                EntityManager.AddComponentData(vehicleEntity, new FollowPathData { PathIndex = -1 });
+                EntityManager.AddComponentData(vehicleEntity, new VehicleData { InitialPos = new int2((int)eTranslation.Value.x, (int)eTranslation.Value.y) });
             });
     }
 
@@ -41,12 +42,13 @@ public partial class VehicleSpawnSystem : ComponentSystem
             Entities
                 .WithAll<VehicleTag>()
                 .WithNone<RoadTag>()
-                .ForEach((Entity e, ref Translation eTranslation) =>
+                .ForEach((Entity e, ref Translation vehicleTranslation) =>
                 {
-                    var vehiclePos = eTranslation.Value;
+                    var vehiclePos = vehicleTranslation.Value;
                     var closestTargetEntity = Entity.Null;
                     var closestTargetPos = float3.zero;
 
+                    // find closest producer
                     Entities
                         .WithAll<ProducerTag>()
                         .WithNone<RoadTag>()
@@ -69,16 +71,15 @@ public partial class VehicleSpawnSystem : ComponentSystem
                             }
                         });
 
+                    // add pathfinding to the producer
                     if (closestTargetEntity != Entity.Null)
                     {
+                        Debug.Log("VehicleSpawn adding pathfinding params");
                         PostUpdateCommands.AddComponent(e, new PathfindingParams
                         {
-                            StartPosition = new int2((int)eTranslation.Value.x, (int)eTranslation.Value.y),
+                            StartPosition = new int2((int)vehicleTranslation.Value.x, (int)vehicleTranslation.Value.y),
                             EndPosition = new int2((int)closestTargetPos.x, (int)closestTargetPos.y)
                         });
-                        var pos = new float3(eTranslation.Value.x, eTranslation.Value.y - .1f, _zPosition);
-                        EntityManager.AddComponentData(e, new VehicleData { InitialPos = new int2((int)eTranslation.Value.x, (int)eTranslation.Value.y) });
-
                     }
                 });
 

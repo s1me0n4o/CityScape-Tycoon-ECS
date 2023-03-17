@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 756731307010964543}
   - component: {fileID: 756731307010964528}
   - component: {fileID: 5300466291797875012}
-  - component: {fileID: -3502104039177803193}
+  - component: {fileID: 3839598508574831011}
   m_Layer: 0
   m_Name: BuildingConsumer
   m_TagString: Untagged
@@ -47,9 +47,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47a4fea2371aa8b468c43887e68188a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Value:
+  ValueX:
     state: 0
-  RandomIndex: 0
+  ValueY:
+    state: 0
+  RandomValueX: 0
+  RandomValueY: 0
 --- !u!114 &5300466291797875012
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -62,7 +65,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c1500d3cbed1e5f49ad783ce923db552, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &-3502104039177803193
+--- !u!114 &3839598508574831011
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -71,12 +74,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 756731307010964541}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 547e80fb9a460db4b9f5f9c5d302bfc8, type: 3}
+  m_Script: {fileID: 11500000, guid: 8ec9efe37cdc9dd42a4d486cc4ee280a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GenerateOnSeconds: 0
-  CurrentAmount: 0
-  TimerValue: 0
+  AssignedProducer: {fileID: 0}
+  ProductCount: 0
 --- !u!1 &756731307368277976
 GameObject:
   m_ObjectHideFlags: 0

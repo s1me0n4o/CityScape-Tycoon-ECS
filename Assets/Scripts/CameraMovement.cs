@@ -5,8 +5,8 @@ public class CameraMovement : MonoBehaviour
 {
     private CinemachineVirtualCamera _cam;
 
-    private float _fovMin = 36f;
-    private float _fovMax = 140f;
+    [SerializeField] private float _fovMin = 36f;
+    [SerializeField] private float _fovMax = 140f;
     private float _targetFov;
 
     private void Start()

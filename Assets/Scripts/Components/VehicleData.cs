@@ -5,4 +5,5 @@ public struct VehicleData : IComponentData
 {
     public Entity VehicleEntityPrefab;
     public int2 InitialPos;
+    public bool IsReturning;
 }
