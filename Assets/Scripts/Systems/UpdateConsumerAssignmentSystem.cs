@@ -8,34 +8,27 @@ public partial class UpdateConsumerAssignmentSystem : SystemBase
 {
     protected override void OnUpdate()
     {
+        Enabled = false;
         Entities
             .WithAll<ConsumerTag>()
-            .ForEach((Entity consumerEntity, ConsumerDataAuthoring consumer, ref Translation consumerPos) =>
+            .ForEach((Entity consumerEntity, ConsumerData consumer, ref Translation consumerPos) =>
             {
-                if (consumer.AssignedProducer == Entity.Null)
+                if (consumer.AssignedProducer != Entity.Null)
                     return;
 
-                var producer = EntityManager.GetComponentData<ProducerData>(consumer.AssignedProducer); // cannot find it TODO: Change the logic
+                Entity newProducer = FindClosestProducer(new float3(consumerPos.Value.x, consumerPos.Value.y, consumerPos.Value.z));
 
-                if (producer.CurrentAmount > 1)
+                if (newProducer != Entity.Null)
                 {
-                    // Find a new producer to assign to this consumer
-                    UnityEngine.Debug.Log("FindProducer !");
-                    Entity newProducer = FindClosestProducer(new float3(consumerPos.Value.x, consumerPos.Value.y, consumerPos.Value.z));
-                    UnityEngine.Debug.Log($"Prod - {newProducer}!");
-
-                    if (newProducer != Entity.Null)
-                    {
-                        // Update the consumer's assignment
-                        consumer.AssignedProducer = newProducer;
-                        UnityEngine.Debug.Log("Assigned!");
-                    }
-                    else
-                    {
-                        // No available producers found, reset assignment
-                        consumer.AssignedProducer = Entity.Null;
-                        UnityEngine.Debug.Log($"still null");
-                    }
+                    // update the consumer's assignment
+                    consumer.AssignedProducer = newProducer;
+                    UnityEngine.Debug.Log("Assigned!");
+                }
+                else
+                {
+                    // no available producers found, reset assignment
+                    consumer.AssignedProducer = Entity.Null;
+                    UnityEngine.Debug.Log($"still null");
                 }
             }).WithoutBurst().Run();
 
@@ -69,6 +62,7 @@ public partial class UpdateConsumerAssignmentSystem : SystemBase
                     }
                 }
             }).WithoutBurst().Run();
-        return Entity.Null;
+
+        return closestTargetEntity;
     }
 }

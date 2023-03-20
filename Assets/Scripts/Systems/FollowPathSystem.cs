@@ -43,10 +43,11 @@ public partial class FollowPathSystem : ComponentSystem
                         UnityEngine.Debug.Log($"AddingReturnPath!");
                         vData.IsReturning = true;
                         // adding pathfinding to the consumer
+                        var consumerTranslation = EntityManager.GetComponentData<Translation>(vData.AssignedToConsumer);
                         EntityManager.AddComponentData(e, new PathfindingParams
                         {
                             StartPosition = new int2((int)translation.Value.x, (int)translation.Value.y),
-                            EndPosition = new int2((int)vData.InitialPos.x, (int)vData.InitialPos.y)
+                            EndPosition = new int2((int)consumerTranslation.Value.x, (int)consumerTranslation.Value.y)
                         });
                     }
                 }

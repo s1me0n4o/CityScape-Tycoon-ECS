@@ -53,6 +53,7 @@ public partial class BuildingRandomSystem : SystemBase
         EntityManager.AddComponent<BuildingParamsData>(newEntity);
         EntityManager.AddComponent<ConsumerTag>(newEntity);
         EntityManager.AddComponent<PathPositionAuthoring>(newEntity);
+        EntityManager.AddComponent<ConsumerData>(newEntity);
     }
 
     private void CreateProducer(BuildingParamsData buildingData)
