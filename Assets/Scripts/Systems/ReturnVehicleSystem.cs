@@ -35,6 +35,11 @@ public partial class ReturnVehicleSystem : ComponentSystem
                     });
                     prodData.CurrentAmount--;
                     EntityManager.SetComponentData(vehData.Destination, prodData);
+                    var consumerData = EntityManager.GetComponentData<ConsumerData>(vehData.AssignedToConsumer);
+                    consumerData.ProductCount++;
+
+                    // update consumer,
+                    // update producer
                 }
             });
 

@@ -6,6 +6,8 @@ public partial class RobinRoundDispatchSystem : SystemBase
 {
     private int _lastAssignedIndex = 0;
     private int _requiredProduct = 1;
+    private bool _hasBeenSent;
+
     protected override void OnUpdate()
     {
         var consumerEntities = EntityManager.CreateEntityQuery(typeof(ConsumerData)).ToEntityArray(Allocator.TempJob);
@@ -19,7 +21,7 @@ public partial class RobinRoundDispatchSystem : SystemBase
 
                 int availableProduct = producer.CurrentAmount;
 
-                if (availableProduct >= _requiredProduct)
+                if (availableProduct >= _requiredProduct && !_hasBeenSent)
                 {
                     // enough product available, assign the next consumer to the producer
                     var consumerEntity = consumerEntities[_lastAssignedIndex % consumerEntities.Length];
@@ -33,6 +35,7 @@ public partial class RobinRoundDispatchSystem : SystemBase
                         consumerData.ProductCount = _requiredProduct;
                         consumerData.SendVehicle = true;
                         EntityManager.SetComponentData(consumerEntity, consumerData);
+                        _hasBeenSent = true;
                     }
                 }
             }).WithoutBurst().Run();
