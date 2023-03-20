@@ -22,8 +22,9 @@ public partial class DispatchVehicleSystem : ComponentSystem
                     var currentVeh = consumerData.Vehicle;
                     Entities
                         .WithAll<VehicleTag>()
-                        .WithNone<RoadTag>().
-                        ForEach((Entity e, ref VehicleData vehData, ref Translation vehTranslation) =>
+                        .WithNone<RoadTag>()
+                        .WithNone<ReturnWithoutProductTag>()
+                        .ForEach((Entity e, ref VehicleData vehData, ref Translation vehTranslation) =>
                         {
                             if (currentVeh != e)
                                 return;
@@ -31,6 +32,7 @@ public partial class DispatchVehicleSystem : ComponentSystem
                             if (vehData.Destination != Entity.Null)
                                 return;
 
+                            // adding pathfinding in order the vehicle to move towards the target
                             var producerTranslation = EntityManager.GetComponentData<Translation>(producer);
                             EntityManager.AddComponentData(e, new PathfindingParams
                             {

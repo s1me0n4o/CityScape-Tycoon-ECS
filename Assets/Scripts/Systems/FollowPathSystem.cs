@@ -37,19 +37,19 @@ public partial class FollowPathSystem : ComponentSystem
                 if (math.distance(translation.Value, targetPos) < _minDist)
                 {
                     followPathData.PathIndex--;
-                    if (followPathData.PathIndex <= 0 && !vData.IsReturning)
-                    {
-                        // producer reached
-                        UnityEngine.Debug.Log($"AddingReturnPath!");
-                        vData.IsReturning = true;
-                        // adding pathfinding to the consumer
-                        var consumerTranslation = EntityManager.GetComponentData<Translation>(vData.AssignedToConsumer);
-                        EntityManager.AddComponentData(e, new PathfindingParams
-                        {
-                            StartPosition = new int2((int)translation.Value.x, (int)translation.Value.y),
-                            EndPosition = new int2((int)consumerTranslation.Value.x, (int)consumerTranslation.Value.y)
-                        });
-                    }
+                    //if (followPathData.PathIndex <= 0 && !vData.IsReturning)
+                    //{
+                    //    // producer reached
+                    //    UnityEngine.Debug.Log($"AddingReturnPath!");
+                    //    vData.IsReturning = true;
+                    //    // adding pathfinding to the consumer
+                    //    var consumerTranslation = EntityManager.GetComponentData<Translation>(vData.AssignedToConsumer);
+                    //    EntityManager.AddComponentData(e, new PathfindingParams
+                    //    {
+                    //        StartPosition = new int2((int)translation.Value.x, (int)translation.Value.y),
+                    //        EndPosition = new int2((int)consumerTranslation.Value.x, (int)consumerTranslation.Value.y)
+                    //    });
+                    //}
                 }
             }
         });

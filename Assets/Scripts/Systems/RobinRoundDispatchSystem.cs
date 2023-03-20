@@ -25,15 +25,15 @@ public partial class RobinRoundDispatchSystem : SystemBase
                     var consumerEntity = consumerEntities[_lastAssignedIndex % consumerEntities.Length];
                     _lastAssignedIndex++;
 
-                    var consumer = EntityManager.GetComponentData<ConsumerData>(consumerEntity);
-                    var consumerTranslation = EntityManager.GetComponentData<Translation>(consumerEntity);
-                    consumer.AssignedProducer = producerEntity;
-                    consumer.ProductCount = _requiredProduct;
-                    consumer.SendVehicle = true;
-                    EntityManager.SetComponentData(consumerEntity, consumer);
-                    UnityEngine.Debug.Log($"Send Vehicle from consumer {consumerEntity} - veh: {consumer.Vehicle}!");
-
-                    producer.CurrentAmount -= _requiredProduct;
+                    var consumerData = EntityManager.GetComponentData<ConsumerData>(consumerEntity);
+                    if (!consumerData.SendVehicle)
+                    {
+                        var consumerTranslation = EntityManager.GetComponentData<Translation>(consumerEntity);
+                        consumerData.AssignedProducer = producerEntity;
+                        consumerData.ProductCount = _requiredProduct;
+                        consumerData.SendVehicle = true;
+                        EntityManager.SetComponentData(consumerEntity, consumerData);
+                    }
                 }
             }).WithoutBurst().Run();
 

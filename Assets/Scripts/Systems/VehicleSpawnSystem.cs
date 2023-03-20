@@ -19,7 +19,10 @@ public partial class VehicleSpawnSystem : ComponentSystem
                 var vehicleEntity = EntityManager.Instantiate(vehData.VehicleEntityPrefab);
                 EntityManager.AddComponent<Translation>(vehicleEntity);
                 EntityManager.AddComponent<VehicleTag>(vehicleEntity);
-                EntityManager.AddComponentData(vehicleEntity, new VehicleData { AssignedToConsumer = consumerEntity });
+                EntityManager.AddComponentData(vehicleEntity, new VehicleData
+                {
+                    AssignedToConsumer = consumerEntity,
+                });
 
                 // pathfinding
                 EntityManager.AddComponent<PathPositionAuthoring>(vehicleEntity);

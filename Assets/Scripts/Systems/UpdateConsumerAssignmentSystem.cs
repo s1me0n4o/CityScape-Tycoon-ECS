@@ -20,15 +20,11 @@ public partial class UpdateConsumerAssignmentSystem : SystemBase
 
                 if (newProducer != Entity.Null)
                 {
-                    // update the consumer's assignment
                     consumer.AssignedProducer = newProducer;
-                    UnityEngine.Debug.Log("Assigned!");
                 }
                 else
                 {
-                    // no available producers found, reset assignment
                     consumer.AssignedProducer = Entity.Null;
-                    UnityEngine.Debug.Log($"still null");
                 }
             }).WithoutBurst().Run();
 
