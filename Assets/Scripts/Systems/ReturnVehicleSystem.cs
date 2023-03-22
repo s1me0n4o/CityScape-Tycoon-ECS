@@ -17,6 +17,8 @@ public partial class ReturnVehicleSystem : ComponentSystem
                 if (vehData.Destination == Entity.Null)
                     return;
 
+                var prodEntity = vehData.Destination;
+                var consumerEntity = vehData.AssignedToConsumer;
                 var destTranslation = EntityManager.GetComponentData<Translation>(vehData.Destination);
                 var prodData = EntityManager.GetComponentData<ProducerData>(vehData.Destination);
                 if (prodData.CurrentAmount <= 0)
@@ -35,8 +37,34 @@ public partial class ReturnVehicleSystem : ComponentSystem
                     });
                     prodData.CurrentAmount--;
                     EntityManager.SetComponentData(vehData.Destination, prodData);
+                    UnityEngine.Debug.Log($"Vehicle prod data  = {prodData.CurrentAmount}");
                     var consumerData = EntityManager.GetComponentData<ConsumerData>(vehData.AssignedToConsumer);
                     consumerData.ProductCount++;
+
+                    Entities
+                    .WithAll<ProducerTag>()
+                    .ForEach((Entity entity, ref ProducerData data) =>
+                    {
+                        if (entity == prodEntity)
+                        {
+                            data.CurrentAmount = prodData.CurrentAmount;
+                            EntityManager.SetComponentData(entity, data);
+                            UnityEngine.Debug.Log($"Update Prod data  = {data.CurrentAmount}");
+
+                        }
+                    });
+
+                    Entities
+                    .WithAll<ConsumerTag>()
+                    .ForEach((Entity entity, ref ConsumerData data) =>
+                    {
+                        if (entity == consumerEntity)
+                        {
+                            data.ProductCount = consumerData.ProductCount;
+                            EntityManager.SetComponentData(entity, data);
+                            UnityEngine.Debug.Log($"Update Cons data  = {data.ProductCount}");
+                        }
+                    });
 
                     // update consumer,
                     // update producer
