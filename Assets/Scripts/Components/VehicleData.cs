@@ -6,5 +6,6 @@ public struct VehicleData : IComponentData
     public Entity AssignedToConsumer;
     public Entity Destination;
     public bool IsReturning;
-    public bool IsMoving;
+    public bool HasArrivedToConsumer;
+    public bool HasArrivedToProducer;
 }

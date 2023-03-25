@@ -22,6 +22,8 @@ public partial class VehicleSpawnSystem : ComponentSystem
                 EntityManager.AddComponentData(vehicleEntity, new VehicleData
                 {
                     AssignedToConsumer = consumerEntity,
+                    HasArrivedToConsumer = true,
+                    HasArrivedToProducer = false
                 });
 
                 // pathfinding

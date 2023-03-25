@@ -4,7 +4,7 @@ using Unity.Transforms;
 
 public partial class ReturnVehicleSystem : ComponentSystem
 {
-    private float _minDist = .13f;
+    private float _minDist = .2f;
 
     protected override void OnUpdate()
     {
@@ -28,18 +28,29 @@ public partial class ReturnVehicleSystem : ComponentSystem
                 }
                 var consumerTranslation = EntityManager.GetComponentData<Translation>(vehData.AssignedToConsumer);
                 //UnityEngine.Debug.Log(math.distance(translation.Value, destTranslation.Value));
-                if (math.distance(translation.Value, destTranslation.Value) < _minDist)
+                if (math.distance(translation.Value, destTranslation.Value) < _minDist 
+                    && !vehData.HasArrivedToConsumer
+                    && !vehData.HasArrivedToProducer)
                 {
+                    prodData.CurrentAmount--;
+                    EntityManager.SetComponentData(vehData.Destination, prodData);
+                    vehData.HasArrivedToProducer = true;
+                    vehData.HasArrivedToConsumer = false;
+                    vehData.IsReturning = true;
+                    EntityManager.SetComponentData(vehicleEntity, vehData);
+                    
+                    UnityEngine.Debug.Log($"Vehicle prod data  = {prodData.CurrentAmount}");
+                    var consumerData = EntityManager.GetComponentData<ConsumerData>(vehData.AssignedToConsumer);
+                    consumerData.ProductCount++;
+                    
+                    
+                    // add pathfinding
                     EntityManager.AddComponentData(vehicleEntity, new PathfindingParams
                     {
                         StartPosition = new int2((int)translation.Value.x, (int)translation.Value.y),
                         EndPosition = new int2((int)consumerTranslation.Value.x, (int)consumerTranslation.Value.y)
                     });
-                    prodData.CurrentAmount--;
-                    EntityManager.SetComponentData(vehData.Destination, prodData);
-                    UnityEngine.Debug.Log($"Vehicle prod data  = {prodData.CurrentAmount}");
-                    var consumerData = EntityManager.GetComponentData<ConsumerData>(vehData.AssignedToConsumer);
-                    consumerData.ProductCount++;
+
 
                     Entities
                     .WithAll<ProducerTag>()

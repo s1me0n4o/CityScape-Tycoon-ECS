@@ -11,20 +11,19 @@ public partial class ReturnWithoutProductSystem : ComponentSystem
         .WithNone<RoadTag>()
         .ForEach((Entity e, ref VehicleData vehData, ref Translation vehTranslation) =>
         {
-            if (!vehData.IsReturning)
+            if (!vehData.IsReturning && !vehData.HasArrivedToConsumer)
             {
                 EntityManager.RemoveComponent<FollowPathData>(e);
                 EntityManager.RemoveComponent<PathfindingParams>(e);
 
                 var consumerTranslation = EntityManager.GetComponentData<Translation>(vehData.AssignedToConsumer);
-
+                vehData.IsReturning = true;
                 EntityManager.AddComponentData(e, new PathfindingParams
                 {
                     StartPosition = new int2((int)vehTranslation.Value.x, (int)vehTranslation.Value.y),
                     EndPosition = new int2((int)consumerTranslation.Value.x, (int)consumerTranslation.Value.y)
                 });
                 EntityManager.AddComponent<FollowPathData>(e);
-                vehData.IsReturning = true;
             }
         });
 
